@@ -2,6 +2,18 @@
 
 An end-to-end e-commerce demo application built with Spring Boot microservices and a Vite + React frontend.
 
+## Tech Stack
+- Backend
+  - Java 17
+  - Spring Boot 2.7.x (Web, Data JPA, Validation)
+  - Spring Security (BCrypt, DAO AuthenticationProvider)
+  - H2 Database (file-based) for local development
+  - Maven (multi-module build)
+- Frontend
+  - React 18
+  - Vite 5 (dev server and bundler)
+  - Vanilla CSS (custom theme)
+
 ## Architecture
 - customer-service (Spring Boot)
   - Port: 8081
