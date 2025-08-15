@@ -16,6 +16,17 @@ function App() {
   const [view, setView] = useState('login') // 'login' | 'products' | 'cart'
   const [highlightRegister, setHighlightRegister] = useState(false)
 
+  function logout() {
+    setToken('')
+    setUsername('')
+    setPassword('')
+    setCart([])
+    setShowRegister(false)
+    setHighlightRegister(false)
+    setFlash('Successfully logged out')
+    setView('login')
+  }
+
   async function login() {
     setFlash('')
     try {
@@ -168,18 +179,22 @@ function App() {
     }
   }, [token, view, username])
 
+  // Ensure products are available on cart view to compute totals
+  useEffect(() => {
+    if (token && view === 'cart') {
+      loadProducts()
+    }
+  }, [token, view])
+
   // If not logged in, show login view
   if (!token || view === 'login') {
     return (
-      <div style={{ fontFamily: 'system-ui', padding: 24, maxWidth: 360 }}>
+      <div className="app-container" style={{ maxWidth: 420 }}>
         <h1>PowerRack - one stop for all gym gears</h1>
         {flash && (
-          <div style={{
-            backgroundColor: '#eef6ff', border: '1px solid #bfdbfe', color: '#1e40af',
-            padding: '8px 12px', borderRadius: 6, marginBottom: 12
-          }}>{flash}</div>
+          <div className="flash" style={{ marginBottom: 12 }}>{flash}</div>
         )}
-        <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+        <div className="toolbar">
           <button onClick={() => { setShowRegister(false); setHighlightRegister(false); }} disabled={!showRegister}>Login</button>
           <button
             onClick={() => { setShowRegister(true); setHighlightRegister(false); }}
@@ -218,9 +233,14 @@ function App() {
   // Products page
   if (view === 'products') {
     return (
-      <div style={{ fontFamily: 'system-ui', padding: 24 }}>
-        <h1>PowerRack - one stop for all gym gears</h1>
-        <div style={{ marginBottom: 16 }}>Logged in as <strong>{username}</strong></div>
+      <div className="app-container">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h1 style={{ margin: 0 }}>PowerRack - one stop for all gym gears</h1>
+          <div>
+            <span style={{ marginRight: 12 }}>Logged in as <strong>{(username || '').split('@')[0]}</strong></span>
+            <button onClick={logout}>Logout</button>
+          </div>
+        </div>
         <div>
           <h2>Products</h2>
           <ul>
@@ -256,9 +276,9 @@ function App() {
 
   // Cart page
   return (
-    <div style={{ fontFamily: 'system-ui', padding: 24 }}>
+    <div className="app-container">
       <h1>Your Cart</h1>
-      <div style={{ marginBottom: 16 }}>User: <strong>{username}</strong></div>
+      <div style={{ marginBottom: 16 }}>User: <strong>{(username || '').split('@')[0]}</strong></div>
       <button onClick={() => setView('products')}>Back to products</button>
       <div style={{ marginTop: 16 }}>
         <ul>
@@ -266,6 +286,18 @@ function App() {
           {cart.map((c, idx) => (
             <li key={idx}>
               {c.name}
+              {(() => {
+                const pid = c.productId != null ? c.productId : c.id
+                const prod = products.find(p => String(p.id) === String(pid))
+                const price = Number(prod && prod.price != null ? prod.price : 0)
+                const qty = Number(c.qty != null ? c.qty : 0)
+                const amount = price * qty
+                return (
+                  <span style={{ marginLeft: 8, fontWeight: 600 }}>
+                    ₹{amount.toLocaleString('en-IN')}
+                  </span>
+                )
+              })()}
               <span style={{ marginLeft: 8, display: 'inline-flex', gap: 8, alignItems: 'center' }}>
                 <button onClick={() => decrementItem(c.productId || c.id)}>-</button>
                 <span>{Number(c.qty || 0)}</span>
@@ -290,6 +322,22 @@ function App() {
             </li>
           ))}
         </ul>
+        {cart.length > 0 && (
+          (() => {
+            const total = cart.reduce((sum, c) => {
+              const pid = c.productId != null ? c.productId : c.id
+              const prod = products.find(p => String(p.id) === String(pid))
+              const price = Number(prod && prod.price != null ? prod.price : 0)
+              const qty = Number(c.qty != null ? c.qty : 0)
+              return sum + price * qty
+            }, 0)
+            return (
+              <div style={{ marginTop: 12, fontWeight: 600 }}>
+                Total: ₹{total.toLocaleString('en-IN')}
+              </div>
+            )
+          })()
+        )}
         <div style={{ marginTop: 16 }}>
           <button onClick={clearCart} disabled={cart.length === 0}>Clear cart</button>
         </div>
