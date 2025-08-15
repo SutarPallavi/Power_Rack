@@ -1,0 +1,27 @@
+# Node
+node_modules/
+.vite/
+.DS_Store
+
+# Java / Maven
+**/target/
+.mvn/
+!/.mvn/wrapper/maven-wrapper.jar
+
+# IDEs
+.idea/
+.project
+.classpath
+.settings/
+*.iml
+
+# Logs
+*.log
+
+# OS
+Thumbs.db
+
+# H2 database files (local dev)
+**/*.mv.db
+**/*.trace.db
+
